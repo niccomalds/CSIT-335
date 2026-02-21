@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Parking Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --red:    #8B0000;
+    --gold:   #FFD700;
+    --dark:   #1a0a00;
+    --bg:     #f5f5f5;
+    --card:   #ffffff;
+    --grey:   #e0e0e0;
+    --green:  #22c55e;
+    --red2:   #ef4444;
+    --yellow: #FFD700;
+  }
+
+  body {
+    font-family: 'Barlow Condensed', sans-serif;
+    background: #111;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  /* ── Shell ── */
+  .shell {
+    width: 100%;
+    max-width: 920px;
+    background: #fff;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0,0,0,.7);
+    border: 3px solid var(--red);
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--red);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .menu-btn {
+    background: var(--gold);
+    border: none;
+    border-radius: 8px;
+    padding: 9px 12px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .menu-btn span { display: block; width: 20px; height: 2.5px; background: var(--red); border-radius: 2px; }
+  .sticker-label {
+    background: var(--gold);
+    border-radius: 8px;
+    padding: 8px 28px;
+    font-weight: 900;
+    font-size: 20px;
+    letter-spacing: 2px;
+    color: var(--dark);
+  }
+  .power-btn {
+    background: var(--gold);
+    border: none;
+    border-radius: 8px;
+    padding: 9px 14px;
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--red);
+  }
+
+  /* ── Controls ── */
+  .controls {
+    padding: 14px 20px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  /* Custom dropdown */
+  .dropdown { position: relative; min-width: 215px; }
+  .dropdown-btn {
+    background: var(--gold);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-weight: 800;
+    font-size: 14px;
+    font-family: 'Barlow Condensed', sans-serif;
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    color: var(--dark);
+    letter-spacing: .5px;
+    box-shadow: 0 2px 8px rgba(255,215,0,.25);
+    transition: transform .1s;
+  }
+  .dropdown-btn:hover { transform: translateY(-1px); }
+  .dropdown-btn .arrow {
+    display: inline-block;
+    font-size: 10px;
+    transition: transform .2s;
+  }
+  .dropdown-btn.open .arrow { transform: rotate(180deg); }
+  .dropdown-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0; right: 0;
+    background: var(--dark);
+    border: 2px solid var(--gold);
+    border-radius: 8px;
+    overflow: hidden;
+    z-index: 200;
+    box-shadow: 0 10px 30px rgba(0,0,0,.6);
+  }
+  .dropdown-menu.open { display: block; }
+  .dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #2a2a2a;
+    color: #ddd;
+    cursor: pointer;
+    text-align: left;
+    font-size: 14px;
+    font-family: 'Barlow Condensed', sans-serif;
+    transition: background .15s;
+  }
+  .dropdown-item:hover { background: rgba(255,215,0,.2); }
+  .dropdown-item.active { color: var(--gold); font-weight: 800; background: rgba(255,215,0,.1); }
+
+  /* ── Main layout ── */
+  .main {
+    display: flex;
+    padding: 0 20px 14px;
+    gap: 0;
+    flex-wrap: wrap;
+  }
+
+  /* ── Map canvas ── */
+  .map-wrap { flex: 1 1 400px; min-height: 300px; }
+  .map-canvas {
+    background: #141428;
+    border-radius: 14px;
+    padding: 18px;
+    height: 100%;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+  .map-canvas::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,.07) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+  }
+  .zone-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .zone-id {
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .zone-building {
+    color: #888;
+    font-size: 11px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  /* Spot grid */
+  .spot-rows {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+  }
+  .spot-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .row-label {
+    color: #555;
+    font-size: 10px;
+    font-family: 'Share Tech Mono', monospace;
+    width: 12px;
+    flex-shrink: 0;
+  }
+  .road-line {
+    flex: 1;
+    height: 2px;
+    border-radius: 1px;
+  }
+  .road-left  { background: linear-gradient(90deg, transparent, #2a2a3a); }
+  .road-right { background: linear-gradient(90deg, #2a2a3a, transparent); }
+
+  .spots-group { display: flex; gap: 6px; align-items: center; }
+
+  /* ── Dot spots ── */
+  .spot-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .spot-dot:hover { transform: scale(1.35); z-index: 10; }
+  .spot-dot.available {
+    background: var(--green);
+    box-shadow: 0 0 6px rgba(34,197,94,.5);
+  }
+  .spot-dot.available:hover { box-shadow: 0 0 12px rgba(34,197,94,.8); }
+  .spot-dot.occupied {
+    background: var(--red2);
+    box-shadow: 0 0 6px rgba(239,68,68,.4);
+  }
+  .spot-dot.occupied:hover { box-shadow: 0 0 12px rgba(239,68,68,.7); }
+
+  .entrance-line {
+    border-top: 1px dashed rgba(255,215,0,.25);
+    padding-top: 6px;
+    text-align: center;
+    color: rgba(255,215,0,.4);
+    font-size: 10px;
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 2px;
+    flex-shrink: 0;
+  }
+
+  /* ── Stats panel ── */
+  .stats-panel {
+    flex: 0 0 210px;
+    padding-left: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .stats-card {
+    background: #f2f2f2;
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .stat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .stat-left { display: flex; align-items: center; gap: 8px; }
+  .stat-dot {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .stat-dot.green  { background: var(--green);  box-shadow: 0 0 6px rgba(34,197,94,.5); }
+  .stat-dot.red    { background: var(--red2);   box-shadow: 0 0 6px rgba(239,68,68,.4); }
+  .stat-dot.yellow { background: var(--yellow); box-shadow: 0 0 6px rgba(255,215,0,.5); }
+  .stat-label { font-size: 15px; font-weight: 600; color: #333; }
+  .stat-value {
+    background: var(--gold);
+    border-radius: 6px;
+    padding: 4px 14px;
+    font-weight: 900;
+    font-size: 16px;
+    color: var(--dark);
+  }
+
+  /* Occupancy bar */
+  .occ-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .occ-lbl {
+    font-size: 10px;
+    color: #888;
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .occ-track {
+    height: 8px;
+    background: #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .occ-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width .5s ease, background .5s ease;
+  }
+
+  /* Zone dots */
+  .zone-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+  }
+  .zone-dot-btn {
+    height: 8px;
+    border-radius: 4px;
+    background: #ccc;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: width .3s, background .3s;
+  }
+  .zone-dot-btn.active {
+    background: var(--gold);
+    width: 22px !important;
+  }
+
+  /* Navigate */
+  .find-label { font-size: 12px; font-weight: 700; color: #666; margin-bottom: 6px; }
+  .nav-btn {
+    width: 100%;
+    background: var(--gold);
+    border: none;
+    border-radius: 10px;
+    padding: 12px 0;
+    font-weight: 900;
+    font-size: 16px;
+    font-family: 'Barlow Condensed', sans-serif;
+    cursor: pointer;
+    color: var(--dark);
+    letter-spacing: 1px;
+    box-shadow: 0 4px 16px rgba(255,215,0,.35);
+    transition: background .3s, box-shadow .3s;
+  }
+  .nav-btn.navigating {
+    background: var(--green);
+    box-shadow: 0 4px 16px rgba(34,197,94,.4);
+  }
+
+  /* ── Bottom zone switcher ── */
+  .bottom-bar {
+    background: #f5f5f5;
+    border-top: 2px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 20px;
+    gap: 10px;
+  }
+  .arrow-btn {
+    background: var(--gold);
+    border: none;
+    border-radius: 8px;
+    width: 38px; height: 38px;
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--red);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(255,215,0,.3);
+    transition: transform .1s;
+  }
+  .arrow-btn:hover { transform: scale(1.08); }
+  .zone-label-box {
+    background: var(--gold);
+    border-radius: 10px;
+    padding: 9px 20px;
+    font-weight: 900;
+    color: var(--dark);
+    min-width: 240px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(255,215,0,.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .zone-name-txt { font-size: 16px; }
+  .zone-sub-txt {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(139,0,0,.55);
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  /* Tooltip */
+  .spot-dot[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,.85);
+    color: #fff;
+    font-size: 10px;
+    font-family: 'Share Tech Mono', monospace;
+    padding: 3px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 100;
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- HEADER -->
+  <div class="header">
+    <button class="menu-btn" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="sticker-label" id="stickerLabel">STICKER# 001</div>
+    <button class="power-btn" aria-label="Power">⏻</button>
+  </div>
+
+  <!-- DROPDOWNS -->
+  <div class="controls">
+    <!-- User type dropdown -->
+    <div class="dropdown" id="userDropdown">
+      <button class="dropdown-btn" id="userBtn" onclick="toggleDropdown('userDropdown')">
+        <span id="userBtnText">Student Parking Area</span>
+        <span class="arrow">▼</span>
+      </button>
+      <div class="dropdown-menu" id="userMenu">
+        <button class="dropdown-item active" onclick="selectUser('Student')">Student Parking Area</button>
+        <button class="dropdown-item" onclick="selectUser('Faculty')">Faculty Parking Area</button>
+        <button class="dropdown-item" onclick="selectUser('Staff/Employee')">Staff/Employee Area</button>
+      </div>
+    </div>
+
+    <!-- Wheel type dropdown -->
+    <div class="dropdown" id="wheelDropdown">
+      <button class="dropdown-btn" id="wheelBtn" onclick="toggleDropdown('wheelDropdown')">
+        <span id="wheelBtnText">2 Wheel</span>
+        <span class="arrow">▼</span>
+      </button>
+      <div class="dropdown-menu" id="wheelMenu">
+        <button class="dropdown-item active" onclick="selectWheel('2 Wheel')">2 Wheel</button>
+        <button class="dropdown-item" onclick="selectWheel('4 Wheel')">4 Wheel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAP + STATS -->
+  <div class="main">
+
+    <!-- Map -->
+    <div class="map-wrap">
+      <div class="map-canvas" id="mapCanvas">
+        <!-- rendered by JS -->
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-panel">
+      <div class="stats-card">
+        <div class="stat-row">
+          <div class="stat-left">
+            <div class="stat-dot green"></div>
+            <span class="stat-label">Available</span>
+          </div>
+          <div class="stat-value" id="statAvail">15</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-left">
+            <div class="stat-dot red"></div>
+            <span class="stat-label">Occupied</span>
+          </div>
+          <div class="stat-value" id="statOcc">105</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-left">
+            <div class="stat-dot yellow"></div>
+            <span class="stat-label">Slots</span>
+          </div>
+          <div class="stat-value" id="statSlots">120</div>
+        </div>
+        <!-- Occupancy bar -->
+        <div style="margin-top:2px">
+          <div class="occ-header">
+            <span class="occ-lbl">OCCUPANCY</span>
+            <span class="occ-lbl" id="occPct">88%</span>
+          </div>
+          <div class="occ-track">
+            <div class="occ-fill" id="occFill" style="width:88%;background:#ef4444"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Zone indicator dots -->
+      <div class="zone-dots" id="zoneDots"></div>
+
+      <!-- Navigate -->
+      <div>
+        <div class="find-label">Find Spots</div>
+        <button class="nav-btn" id="navBtn" onclick="navigate()">🧭 navigate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM ZONE SWITCHER -->
+  <div class="bottom-bar">
+    <button class="arrow-btn" onclick="shiftZone(-1)">←</button>
+    <div class="zone-label-box">
+      <span class="zone-name-txt" id="zoneName">Student Zone A</span>
+      <span class="zone-sub-txt" id="zoneSub">North Wing · 1 / 3</span>
+    </div>
+    <button class="arrow-btn" onclick="shiftZone(1)">→</button>
+  </div>
+
+</div>
+
+<script>
+// ── Data ────────────────────────────────────────────────────────────────
+function makeSpots(count, rate, seed) {
+  const rows = ['A','B','C','D','E'];
+  let r = seed >>> 0;
+  const rand = () => { r = (Math.imul(r, 1664525) + 1013904223) >>> 0; return r / 0xffffffff; };
+  return Array.from({ length: count }, (_, i) => ({
+    id: i + 1,
+    row: rows[Math.floor(i / 5)],
+    col: (i % 5) + 1,
+    status: rand() < rate ? 'occupied' : 'available',
+  }));
+}
+
+const DATA = {
+  Student: {
+    sticker: '001', color: '#FFD700',
+    zones: [
+      { id:'SZ-A', name:'Student Zone A',  building:'North Wing',
+        '2 Wheel': { available:15, occupied:105, slots:120, spots: makeSpots(20,.87,1) },
+        '4 Wheel': { available:8,  occupied:42,  slots:50,  spots: makeSpots(12,.84,2) } },
+      { id:'SZ-B', name:'Student Zone B',  building:'East Annex',
+        '2 Wheel': { available:30, occupied:70,  slots:100, spots: makeSpots(18,.70,3) },
+        '4 Wheel': { available:12, occupied:38,  slots:50,  spots: makeSpots(12,.76,4) } },
+      { id:'SZ-C', name:'Student Zone C',  building:'Allied Building',
+        '2 Wheel': { available:5,  occupied:45,  slots:50,  spots: makeSpots(15,.90,5) },
+        '4 Wheel': { available:20, occupied:10,  slots:30,  spots: makeSpots(10,.33,6) } },
+    ],
+  },
+  Faculty: {
+    sticker: '002', color: '#4A90D9',
+    zones: [
+      { id:'FZ-A', name:'Faculty Zone A',  building:'Admin Building',
+        '2 Wheel': { available:22, occupied:28, slots:50, spots: makeSpots(12,.56,7) },
+        '4 Wheel': { available:30, occupied:20, slots:50, spots: makeSpots(10,.40,8) } },
+      { id:'FZ-B', name:'Faculty Zone B',  building:'Science Complex',
+        '2 Wheel': { available:18, occupied:12, slots:30, spots: makeSpots(10,.40,9) },
+        '4 Wheel': { available:14, occupied:16, slots:30, spots: makeSpots(10,.53,10) } },
+    ],
+  },
+  'Staff/Employee': {
+    sticker: '003', color: '#50C878',
+    zones: [
+      { id:'SEZ-A', name:'Staff Zone A',    building:'Main Office',
+        '2 Wheel': { available:10, occupied:40, slots:50, spots: makeSpots(14,.80,11) },
+        '4 Wheel': { available:18, occupied:32, slots:50, spots: makeSpots(12,.64,12) } },
+      { id:'SEZ-B', name:'Employee Zone B', building:'Service Area',
+        '2 Wheel': { available:6,  occupied:24, slots:30, spots: makeSpots(10,.80,13) },
+        '4 Wheel': { available:10, occupied:20, slots:30, spots: makeSpots(10,.67,14) } },
+      { id:'SEZ-C', name:'Employee Zone C', building:'Warehouse Wing',
+        '2 Wheel': { available:14, occupied:6,  slots:20, spots: makeSpots(8,.30,15) },
+        '4 Wheel': { available:8,  occupied:12, slots:20, spots: makeSpots(8,.60,16) } },
+    ],
+  },
+};
+
+// ── State ───────────────────────────────────────────────────────────────
+let userType  = 'Student';
+let wheelType = '2 Wheel';
+let zoneIndex = 0;
+
+// ── Helpers ─────────────────────────────────────────────────────────────
+function currentZoneData() {
+  return DATA[userType].zones[zoneIndex][wheelType];
+}
+function currentZone() {
+  return DATA[userType].zones[zoneIndex];
+}
+
+// ── Render ──────────────────────────────────────────────────────────────
+function render() {
+  const td   = DATA[userType];
+  const zone = currentZone();
+  const wd   = currentZoneData();
+  const pct  = Math.round((wd.occupied / wd.slots) * 100);
+
+  // Header sticker
+  document.getElementById('stickerLabel').textContent = 'STICKER# ' + td.sticker;
+
+  // Stats
+  document.getElementById('statAvail').textContent = wd.available;
+  document.getElementById('statOcc').textContent   = wd.occupied;
+  document.getElementById('statSlots').textContent = wd.slots;
+  document.getElementById('occPct').textContent    = pct + '%';
+  const fill = document.getElementById('occFill');
+  fill.style.width      = pct + '%';
+  fill.style.background = pct > 80 ? '#ef4444' : pct > 50 ? '#f97316' : '#22c55e';
+
+  // Bottom bar
+  const zones = td.zones;
+  document.getElementById('zoneName').textContent = zone.name;
+  document.getElementById('zoneSub').textContent  = zone.building + ' · ' + (zoneIndex+1) + ' / ' + zones.length;
+
+  // Zone dots (only zones for current user type)
+  const dotsCon = document.getElementById('zoneDots');
+  dotsCon.innerHTML = '';
+  zones.forEach((_, i) => {
+    const b = document.createElement('button');
+    b.className = 'zone-dot-btn' + (i === zoneIndex ? ' active' : '');
+    b.style.width = i === zoneIndex ? '22px' : '8px';
+    b.onclick = () => { zoneIndex = i; render(); };
+    dotsCon.appendChild(b);
+  });
+
+  // Map
+  renderMap(zone, wd, td.color);
+}
+
+function renderMap(zone, wd, accentColor) {
+  const canvas = document.getElementById('mapCanvas');
+
+  // Zone badge
+  const rows = [...new Set(wd.spots.map(s => s.row))];
+  let html = `
+    <div class="zone-badge">
+      <span class="zone-id" style="background:${accentColor}22;border:1px solid ${accentColor}55;color:${accentColor}">${zone.id}</span>
+      <span class="zone-building">${zone.building}</span>
+    </div>
+    <div class="spot-rows">`;
+
+  rows.forEach(row => {
+    const rowSpots = wd.spots.filter(s => s.row === row);
+    html += `<div class="spot-row">
+      <span class="row-label">${row}</span>
+      <div class="road-line road-left"></div>
+      <div class="spots-group">`;
+    rowSpots.forEach(spot => {
+      html += `<div class="spot-dot ${spot.status}" title="${spot.row}${spot.col} — ${spot.status}"></div>`;
+    });
+    html += `</div>
+      <div class="road-line road-right"></div>
+    </div>`;
+  });
+
+  html += `</div>
+    <div class="entrance-line" style="border-top-color:${accentColor}33;color:${accentColor}55">
+      ▲ ENTRANCE / EXIT ▲
+    </div>`;
+
+  canvas.innerHTML = html;
+}
+
+// ── Dropdown logic ──────────────────────────────────────────────────────
+function toggleDropdown(id) {
+  const wrap = document.getElementById(id);
+  const btn  = wrap.querySelector('.dropdown-btn');
+  const menu = wrap.querySelector('.dropdown-menu');
+  const isOpen = menu.classList.contains('open');
+  // close all
+  document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('open'));
+  document.querySelectorAll('.dropdown-btn').forEach(b => b.classList.remove('open'));
+  if (!isOpen) { menu.classList.add('open'); btn.classList.add('open'); }
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.dropdown')) {
+    document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('open'));
+    document.querySelectorAll('.dropdown-btn').forEach(b => b.classList.remove('open'));
+  }
+});
+
+function selectUser(type) {
+  userType  = type;
+  zoneIndex = 0;
+  const labels = { 'Student':'Student Parking Area', 'Faculty':'Faculty Parking Area', 'Staff/Employee':'Staff/Employee Area' };
+  document.getElementById('userBtnText').textContent = labels[type];
+  document.querySelectorAll('#userMenu .dropdown-item').forEach(el => {
+    el.classList.toggle('active', el.textContent === labels[type]);
+  });
+  document.getElementById('userMenu').classList.remove('open');
+  document.getElementById('userBtn').classList.remove('open');
+  render();
+}
+
+function selectWheel(type) {
+  wheelType = type;
+  document.getElementById('wheelBtnText').textContent = type;
+  document.querySelectorAll('#wheelMenu .dropdown-item').forEach(el => {
+    el.classList.toggle('active', el.textContent === type);
+  });
+  document.getElementById('wheelMenu').classList.remove('open');
+  document.getElementById('wheelBtn').classList.remove('open');
+  render();
+}
+
+// ── Zone switcher ────────────────────────────────────────────────────────
+function shiftZone(dir) {
+  const zones = DATA[userType].zones;
+  zoneIndex   = (zoneIndex + dir + zones.length) % zones.length;
+  render();
+}
+
+// ── Navigate ─────────────────────────────────────────────────────────────
+function navigate() {
+  const btn = document.getElementById('navBtn');
+  btn.classList.add('navigating');
+  btn.textContent = '📍 NAVIGATING...';
+  btn.style.background   = '#22c55e';
+  btn.style.boxShadow    = '0 4px 16px rgba(34,197,94,.45)';
+  setTimeout(() => {
+    btn.classList.remove('navigating');
+    btn.textContent     = '🧭 navigate';
+    btn.style.background   = '';
+    btn.style.boxShadow    = '';
+  }, 2000);
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
