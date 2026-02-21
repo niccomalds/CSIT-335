@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parking Management System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../res/home.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <button class="menu-btn" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="sticker-label" id="stickerLabel">STICKER# 001</div>
+    <button class="power-btn" aria-label="Power">&#9211;</button>
+  </div>
+
+  <!-- DROPDOWNS -->
+  <div class="controls">
+
+    <!-- User Type Dropdown -->
+    <div class="dropdown" id="userDropdown">
+      <button class="dropdown-btn" id="userBtn" onclick="toggleDropdown('userDropdown')">
+        <span id="userBtnText">Student Parking Area</span>
+        <span class="arrow">&#9660;</span>
+      </button>
+      <div class="dropdown-menu" id="userMenu">
+        <button class="dropdown-item active" onclick="selectUser('Student')">Student Parking Area</button>
+        <button class="dropdown-item" onclick="selectUser('Faculty')">Faculty Parking Area</button>
+        <button class="dropdown-item" onclick="selectUser('Staff/Employee')">Staff/Employee Area</button>
+      </div>
+    </div>
+
+    <!-- Wheel Type Dropdown -->
+    <div class="dropdown" id="wheelDropdown">
+      <button class="dropdown-btn" id="wheelBtn" onclick="toggleDropdown('wheelDropdown')">
+        <span id="wheelBtnText">2 Wheel</span>
+        <span class="arrow">&#9660;</span>
+      </button>
+      <div class="dropdown-menu" id="wheelMenu">
+        <button class="dropdown-item active" onclick="selectWheel('2 Wheel')">2 Wheel</button>
+        <button class="dropdown-item" onclick="selectWheel('4 Wheel')">4 Wheel</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MAIN BODY -->
+  <div class="body-content">
+
+    <!-- MAP AREA -->
+    <div class="map-area">
+      <div class="map-inner" id="mapInner">
+        <!-- Rendered dynamically by home.js -->
+      </div>
+    </div>
+
+    <!-- SIDE PANEL -->
+    <div class="side-panel">
+
+      <div class="stats-block">
+        <div class="stat-row">
+          <div class="stat-left">
+            <div class="stat-dot green"></div>
+            <span class="stat-label">Available</span>
+          </div>
+          <div class="stat-value" id="statAvail">15</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-left">
+            <div class="stat-dot red"></div>
+            <span class="stat-label">Occupied</span>
+          </div>
+          <div class="stat-value" id="statOcc">105</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-left">
+            <div class="stat-dot yellow"></div>
+            <span class="stat-label">Slots</span>
+          </div>
+          <div class="stat-value" id="statSlots">120</div>
+        </div>
+        <div class="stat-divider"></div>
+      </div>
+
+      <div class="occ-block">
+        <div class="occ-header">
+          <span class="occ-lbl">OCCUPANCY</span>
+          <span class="occ-lbl" id="occPct">88%</span>
+        </div>
+        <div class="occ-track">
+          <div class="occ-fill" id="occFill" style="width:88%; background:#ef4444;"></div>
+        </div>
+      </div>
+
+      <div class="zone-dots-block" id="zoneDots"></div>
+
+      <div class="nav-block">
+        <div class="find-label">Find Spots</div>
+        <button class="nav-btn" id="navBtn" onclick="navigate()">NAVIGATE</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BOTTOM ZONE SWITCHER -->
+  <div class="bottom-bar">
+    <button class="arrow-btn" onclick="shiftZone(-1)">&#8592;</button>
+    <div class="zone-label-box">
+      <span class="zone-name-txt" id="zoneName">Allied Building</span>
+      <span class="zone-sub-txt" id="zoneSub">Tres de Abril &middot; 1 / 3</span>
+    </div>
+    <button class="arrow-btn" onclick="shiftZone(1)">&#8594;</button>
+  </div>
+
+  <script src="../js/home.js"></script>
+</body>
+</html>
